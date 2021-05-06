@@ -5,31 +5,30 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material.Card
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.composeplayground.ui.compose.Greeting
 
 class MainActivity : ComponentActivity() {
 
     // ViewModel
-    private val viewModel by viewModels<MainViewModel>()
-
-    // Toast the text.
-    private val toastMessage: () -> Unit =  {
-        Toast.makeText(this, "Clicked.", Toast.LENGTH_SHORT).show()
-    }
+//    private val viewModel by viewModels<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Hello()
+            ExpandableCard()
 //            ComposePlaygroundTheme {
 //                // A surface container using the 'background' color from the theme
 //                Surface(color = MaterialTheme.colors.background) {
@@ -41,75 +40,61 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Hello(helloViewModel: MainViewModel = viewModel()) {
-    Column {
-        HelloFirstname(helloViewModel)
-        HelloLastname(helloViewModel)
-        HelloResult(helloViewModel)
-    }
+fun ExpandableCard() {
+    ExpandingCard(title = "ExpandableCard", body = "This is the card body")
 }
 
 @Composable
-fun HelloFirstname(viewModel: MainViewModel) {
-    val name by viewModel.firstName.observeAsState("")
+fun ExpandingCard(title: String, body: String) {
+    var expanded by remember { mutableStateOf(false) }
 
-    HelloContent(label = "First", name = name, onNameChange = {
-        viewModel.onFirstNameChange(it)
-    })
-}
+    // describe the card for the current state of expanded
+    Card {
+        Column(
+            Modifier
+                .width(280.dp)
+                .animateContentSize() // automatically animate size when it changes
+                .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+        ) {
+            Text(text = title)
 
-@Composable
-fun HelloLastname(viewModel: MainViewModel) {
-    val name by viewModel.lastName.observeAsState(  "")
-
-    HelloContent(label = "Last", name = name, onNameChange = {
-        viewModel.onLastNameChange(it)
-    })
-}
-
-@Composable
-fun HelloContent(label: String, name: String, onNameChange: (String) -> Unit) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        if (name.isNotEmpty()) {
-            Text(
-                text = "Hello, $name",
-                modifier = Modifier.padding(bottom = 8.dp),
-                style = MaterialTheme.typography.h5
-            )
+            // content of the card depends on the current value of expanded
+            if (expanded) {
+                Text(text = body, Modifier.padding(top = 8.dp))
+                // change expanded in response to click events
+                IconButton(
+                    onClick = { expanded = false },
+                    modifier = Modifier
+                        .size(16.dp)
+                        .align(Alignment.CenterHorizontally)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_collapse_arrow),
+                        contentDescription = "Expand less",
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
+            } else {
+                // change expanded in response to click events
+                IconButton(
+                    onClick = { expanded = true },
+                    modifier = Modifier
+                        .size(16.dp)
+                        .align(Alignment.CenterHorizontally)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_expand_arrow),
+                        contentDescription = "Expand more",
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
+            }
         }
-        OutlinedTextField(
-            value = name,
-            onValueChange = onNameChange,
-            label = { Text(label) }
-        )
-    }
-}
-
-@Composable
-fun HelloResult(viewModel: MainViewModel) {
-    val name: String by viewModel.fullName.observeAsState("-")
-
-    HelloSubmit(name, onSubmitClick = {
-        viewModel.onFullNameSubmit()
-    })
-}
-
-@Composable
-fun HelloSubmit(fullName: String, onSubmitClick: () -> Unit) {
-    Row(modifier = Modifier.padding(16.dp)) {
-        Button(onClick = onSubmitClick) {
-            Text(text = "Submit")
-        }
-        Text(text = fullName,
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .fillMaxHeight()
-        )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    Hello()
+    ExpandableCard()
 }
